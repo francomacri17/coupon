@@ -24,6 +24,15 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
+  #firsebase
+  firebase_auth: ^0.15.5+3
+
+  # google
+  google_sign_in: ^4.4.1
+
+  # flutter login buttons
+  flutter_signin_button: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
