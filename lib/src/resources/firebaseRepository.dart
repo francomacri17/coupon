@@ -6,4 +6,6 @@ class FirebaseRepository {
   final _provider = FirebaseProvider();
 
   Future<FirebaseUser> gogleSignIn() async => _provider.signInWithGoogle();
+
+  Future<void> googleSignOut() async => _provider.googleSignOut();
 }

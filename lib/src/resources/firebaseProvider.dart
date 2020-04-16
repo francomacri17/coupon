@@ -31,4 +31,10 @@ class FirebaseProvider {
     this._auth.signOut();
     return await this._auth.signOut();
   }
+
+  Future<void> googleSignOut() async {
+    this._auth.signOut();
+    return await this.googleSignOut();
+  }
+
 }
