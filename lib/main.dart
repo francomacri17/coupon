@@ -1,3 +1,5 @@
+import 'package:coupon_app/src/blocs/login.bloc.dart';
+import 'package:coupon_app/src/resources/blocProvider.dart';
 import 'package:coupon_app/src/ui/login.page.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +14,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: BlocProvider<LoginBloc>
+      (
+        bloc: LoginBloc(),
+        child: LoginPage(),
+      )
     );
+    
   }
 }

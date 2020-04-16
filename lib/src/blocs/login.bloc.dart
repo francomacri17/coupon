@@ -1,25 +1,28 @@
-// import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:flutter_ubereats_app/src/resources/firebase_repository.dart';
-// import 'package:rxdart/rxdart.dart';
+import 'package:coupon_app/src/resources/blocProvider.dart';
+import 'package:coupon_app/src/resources/firebaseRepository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
 
-// class LoginBLoc {
-//   FirebaseRepository _repository;
+class LoginBloc implements BlocBase{
+  FirebaseRepository _repository;
+  
+  // Stream Controller
+  BehaviorSubject<FirebaseUser> _google = BehaviorSubject<FirebaseUser>();
 
-//   // StreamController
-//   final BehaviorSubject<FirebaseUser> _google = BehaviorSubject<FirebaseUser>();
+  // Stream
+  Stream<FirebaseUser> get googleAccount => _google.stream;
 
-//   // stream
-//   Stream<FirebaseUser> get googleAccount => _google.stream;
+  LoginBloc(){
+    _repository = FirebaseRepository();
+  }
 
-//   // Contructor
-//   LoginBLoc() {
-//     _repository = new FirebaseRepository();
-//   }
+  googleSignIn() async {
+    _repository.gogleSignIn().then((FirebaseUser authUser){
+      _google.sink.add(authUser);
+    });
+  }
 
-//   // google sign-in
-//   googleSignIn() async {
-//     _repository.googleSignIn().then((FirebaseUser authUser) {
-//       _google.sink.add(authUser);
-//     });
-//   }
-// }
+  dispose(){
+    _google.close();
+  }
+}
