@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 abstract class BlocBase {
@@ -8,7 +9,7 @@ class BlocProvider<T extends BlocBase> extends StatefulWidget {
   final T bloc;
   final Widget child;
 
-  BlocProvider({Key key, @required this.child, @required this.bloc})
+    BlocProvider({Key key, @required this.child, @required this.bloc,})
       : super(key: key);
 
   @override

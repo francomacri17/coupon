@@ -1,12 +1,13 @@
 import 'package:coupon_app/src/blocs/login.bloc.dart';
 import 'package:coupon_app/src/resources/blocProvider.dart';
+import 'package:coupon_app/src/resources/userProvider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 
-class LoginPage extends StatelessWidget {
+class SignUpPage extends StatelessWidget {
   LoginBloc bloc;
-
+  final userProvider = new UserProvider();
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<LoginBloc>(context);
@@ -19,12 +20,12 @@ class LoginPage extends StatelessWidget {
                     Color.fromRGBO(70, 0, 0, 0), BlendMode.darken),
                 image: new NetworkImage(
                     'https://i.etsystatic.com/10951470/r/il/0e9685/869999991/il_fullxfull.869999991_4ubt.jpg'))),
-        child: _drawLoginForm(context),
+        child: _drawSignUpForm(context),
       ),
     );
   }
 
-  _drawLoginForm(BuildContext context) {
+  _drawSignUpForm(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(0.0),
       child: Stack(
@@ -32,15 +33,15 @@ class LoginPage extends StatelessWidget {
         //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           _createBackground(context),
-          _loginForm(context),
+          _signUpForm(context),
           //_buildUserInfo(context),
-          //_buildSignInButton(context)
+          //_buildSignUpButton(context)
         ],
       ),
     );
   }
 
-  _buildSignInButton(BuildContext context) {
+  _buildSignUpButton(BuildContext context) {
     return StreamBuilder(
         stream: bloc.googleAccount,
         builder: (BuildContext ctx, AsyncSnapshot<FirebaseUser> snapshot) {
@@ -88,7 +89,7 @@ class LoginPage extends StatelessWidget {
               margin: EdgeInsets.only(top: 20.0),
             ),
             RaisedButton(
-              child: Text('Entrar'),
+              child: Text('Enter'),
             )
           ]);
         }
@@ -132,7 +133,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _loginForm(BuildContext context) {
+  Widget _signUpForm(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return SingleChildScrollView(
@@ -160,7 +161,7 @@ class LoginPage extends StatelessWidget {
             ]),
         child: Column(children: <Widget>[
           Text(
-            "Login",
+            "Register",
             style: TextStyle(fontSize: 30.0),
           ),
           SizedBox(
@@ -174,7 +175,7 @@ class LoginPage extends StatelessWidget {
           SizedBox(
             height: 60.0,
           ),
-          _createButton(),
+          _createSignUpButton(),
           SizedBox(
             height: 30.0,
           ),
@@ -183,9 +184,9 @@ class LoginPage extends StatelessWidget {
       SizedBox(
         height: 30.0,
       ),
-      FlatButton(child:
-      Text('You are not registered?'),
-      onPressed: () => Navigator.pushReplacementNamed(context, 'signUp')),
+      FlatButton(
+          child: Text('Arledy register?'),
+          onPressed: () => Navigator.pushReplacementNamed(context, 'login')),
     ]));
   }
 
@@ -226,27 +227,26 @@ class LoginPage extends StatelessWidget {
         });
   }
 
-  Widget _createButton() {
+  Widget _createSignUpButton() {
     return StreamBuilder(
         stream: bloc.formValidForm,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           return RaisedButton(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 80.0, vertical: 20.0),
-              child: Text('Enter'),
+              child: Text('Register'),
             ),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5.0)),
             elevation: 0.0,
             color: Colors.deepPurple,
             textColor: Colors.white,
-            onPressed: snapshot.hasData ? (){} : null,
+            onPressed: snapshot.hasData ? () => _register(context) : null,
           );
         });
   }
 
-  _login(BuildContext context){
-    Navigator.pushNamed(context, 'home');
+  _register(BuildContext context) {
+    userProvider.newUser(bloc.email, bloc.password);
   }
-
 }
