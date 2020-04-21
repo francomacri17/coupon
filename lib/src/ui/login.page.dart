@@ -1,134 +1,46 @@
 import 'package:coupon_app/src/blocs/login.bloc.dart';
 import 'package:coupon_app/src/resources/blocProvider.dart';
+import 'package:coupon_app/src/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 
 class LoginPage extends StatelessWidget {
   LoginBloc bloc;
-
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<LoginBloc>(context);
-    return Scaffold(
-      body: Container(
-        decoration: new BoxDecoration(
-            image: DecorationImage(
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                    Color.fromRGBO(70, 0, 0, 0), BlendMode.darken),
-                image: new NetworkImage(
-                    'https://i.etsystatic.com/10951470/r/il/0e9685/869999991/il_fullxfull.869999991_4ubt.jpg'))),
-        child: _drawLoginForm(context),
-      ),
-    );
+    StreamBuilder(
+        stream: bloc.userStream,
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot != null) {
+            _loginWithGoogle(context);
+          } else {
+            return Scaffold(
+              body: Container(
+                decoration: new BoxDecoration(
+                    image: DecorationImage(
+                        fit: BoxFit.cover,
+                        colorFilter: ColorFilter.mode(
+                            Color.fromRGBO(70, 0, 0, 0), BlendMode.darken),
+                        image: new NetworkImage(
+                            'https://i.etsystatic.com/10951470/r/il/0e9685/869999991/il_fullxfull.869999991_4ubt.jpg'))),
+                child: _drawLoginForm(context),
+              ),
+            );
+          }
+        });
   }
 
   _drawLoginForm(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(0.0),
       child: Stack(
-        //mainAxisAlignment: MainAxisAlignment.end,
-        //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           _createBackground(context),
           _loginForm(context),
-          //_buildUserInfo(context),
-          //_buildSignInButton(context)
         ],
       ),
-    );
-  }
-
-  _buildSignInButton(BuildContext context) {
-    return StreamBuilder(
-        stream: bloc.googleAccount,
-        builder: (BuildContext ctx, AsyncSnapshot<FirebaseUser> snapshot) {
-          if (snapshot.hasData) {
-            return Container();
-          } else {
-            return SignInButton(
-              Buttons.Google,
-              text: "Sign up with Google",
-              onPressed: () {
-                bloc.googleSignIn();
-              },
-            );
-          }
-        });
-  }
-
-  _buildUserInfo(BuildContext context) {
-    return StreamBuilder(
-      stream: bloc.googleAccount,
-      builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
-        if (!snapshot.hasData) {
-          return Container();
-        } else {
-          return Column(children: <Widget>[
-            Container(
-              width: 100.0,
-              height: 100.0,
-              decoration: new BoxDecoration(
-                shape: BoxShape.circle,
-                image: new DecorationImage(
-                    image: new NetworkImage(snapshot.data.photoUrl.toString()),
-                    fit: BoxFit.fill),
-              ),
-              margin: EdgeInsets.only(bottom: 10.0),
-            ),
-            Text(
-              "Hola ${snapshot.data.displayName}",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 20.0),
-            ),
-            RaisedButton(
-              child: Text('Entrar'),
-            )
-          ]);
-        }
-      },
-    );
-  }
-
-  Widget _createBackground(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    final background = Container(
-        height: size.height * 0.4,
-        width: double.infinity,
-        decoration: BoxDecoration(
-            gradient: LinearGradient(colors: <Color>[
-          Color.fromRGBO(63, 63, 156, 1.0),
-          Color.fromRGBO(90, 70, 178, 1.0)
-        ])));
-    return Stack(
-      children: <Widget>[
-        background,
-        Container(
-          padding: EdgeInsets.only(top: 80.0),
-          child: Column(children: <Widget>[
-            Icon(
-              Icons.person_pin_circle,
-              color: Colors.white,
-              size: 100.0,
-            ),
-            SizedBox(
-              height: 10.0,
-              width: double.infinity,
-            ),
-            Text(
-              'Coupon',
-              style: TextStyle(color: Colors.white, fontSize: 25.0),
-            ),
-          ]),
-        ),
-      ],
     );
   }
 
@@ -178,14 +90,15 @@ class LoginPage extends StatelessWidget {
           SizedBox(
             height: 30.0,
           ),
+          _buildSignInGoogleButton(context),
         ]),
       ),
       SizedBox(
         height: 30.0,
       ),
-      FlatButton(child:
-      Text('You are not registered?'),
-      onPressed: () => Navigator.pushReplacementNamed(context, 'signUp')),
+      FlatButton(
+          child: Text('You are not registered?'),
+          onPressed: () => Navigator.pushReplacementNamed(context, 'signUp')),
     ]));
   }
 
@@ -210,7 +123,7 @@ class LoginPage extends StatelessWidget {
 
   Widget _createPasswordForm() {
     return StreamBuilder(
-        stream: bloc.passwordSteam,
+        stream: bloc.passwordStream,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           return Container(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -240,13 +153,78 @@ class LoginPage extends StatelessWidget {
             elevation: 0.0,
             color: Colors.deepPurple,
             textColor: Colors.white,
-            onPressed: snapshot.hasData ? (){} : null,
+            onPressed: snapshot.hasData ? () => _loginWithEmail(context) : null,
           );
         });
   }
 
-  _login(BuildContext context){
-    Navigator.pushNamed(context, 'home');
+  _loginWithEmail(BuildContext context) async {
+    await bloc.loginWithEmail();
+    if (bloc.user != null) {
+      Navigator.of(context).pushReplacementNamed('home');
+    } else {
+      showAlert(context, 'Login failed', 'Login failed');
+    }
   }
 
+  _buildSignInGoogleButton(BuildContext context) {
+    return StreamBuilder(
+        stream: bloc.userStream,
+        builder: (BuildContext ctx, AsyncSnapshot<FirebaseUser> snapshot) {
+          return SignInButton(
+            Buttons.Google,
+            text: "Sign up with Google",
+            onPressed: () => !snapshot.hasData
+                ? () {
+                    bloc.loginWithGoogle();
+                    if (bloc.user != null) {
+                      Navigator.pushReplacementNamed(context, 'home');
+                    } else {
+                      showAlert(context, 'Error', 'Login failed');
+                    }
+                  }
+                : _loginWithGoogle(context),
+          );
+        });
+  }
+
+  _loginWithGoogle(BuildContext context) {
+    Navigator.of(context).pushReplacementNamed('home');
+  }
+
+  Widget _createBackground(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final background = Container(
+        height: size.height * 0.4,
+        width: double.infinity,
+        decoration: BoxDecoration(
+            gradient: LinearGradient(colors: <Color>[
+          Color.fromRGBO(63, 63, 156, 1.0),
+          Color.fromRGBO(90, 70, 178, 1.0)
+        ])));
+    return Stack(
+      children: <Widget>[
+        background,
+        Container(
+          padding: EdgeInsets.only(top: 80.0),
+          child: Column(children: <Widget>[
+            Icon(
+              Icons.person_pin_circle,
+              color: Colors.white,
+              size: 100.0,
+            ),
+            SizedBox(
+              height: 10.0,
+              width: double.infinity,
+            ),
+            Text(
+              'Coupon',
+              style: TextStyle(color: Colors.white, fontSize: 25.0),
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
 }

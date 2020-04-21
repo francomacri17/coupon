@@ -4,7 +4,11 @@ import 'firebaseProvider.dart';
 class FirebaseRepository {
   final _provider = FirebaseProvider();
 
-  Future<FirebaseUser> gogleSignIn() async => _provider.signInWithGoogle();
+  Future<FirebaseUser> loginWithGoogle() async => _provider.loginWithGoogle();
 
-  Future<void> googleSignOut() async => _provider.googleSignOut();
+  Future<FirebaseUser> loginWithEmail(
+          String email, String password) async =>
+      _provider.loginWithEmail(email, password);
+
+  Future<Map<String, dynamic>> newUser(String email, String password) async => _provider.newUser(email, password);
 }

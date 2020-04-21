@@ -1,11 +1,20 @@
 import 'package:coupon_app/src/blocs/login.bloc.dart';
 import 'package:coupon_app/src/resources/blocProvider.dart';
+import 'package:coupon_app/src/resources/firebaseRepository.dart';
 import 'package:coupon_app/src/ui/home.page.dart';
 import 'package:coupon_app/src/ui/login.page.dart';
 import 'package:coupon_app/src/ui/signUp.page.dart';
+import 'package:coupon_app/src/userPreferences/userPreferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = new UserPreferences();
+  await prefs.initPrefs();
+
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -15,7 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      initialRoute: 'login',
+      initialRoute: this.getCurrentUser() != null ? 'home' : 'login',
       routes: {
         'login': (BuildContext context) => BlocProvider<LoginBloc>(
               bloc: LoginBloc(),
@@ -25,8 +34,17 @@ class MyApp extends StatelessWidget {
               bloc: LoginBloc(),
               child: SignUpPage(),
             ),
-        //'home': (BuildContext context) => HomePage(),
+        'home': ((BuildContext context) => BlocProvider<LoginBloc>(
+              bloc: LoginBloc(),
+              child: HomePage(),
+            ))
       },
     );
+  }
+
+  Future getCurrentUser() async {
+    FirebaseUser _user = await FirebaseAuth.instance.currentUser();
+    print("User: ${_user.displayName ?? "None"}");
+    return _user;
   }
 }

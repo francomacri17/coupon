@@ -1,13 +1,12 @@
 import 'package:coupon_app/src/blocs/login.bloc.dart';
 import 'package:coupon_app/src/resources/blocProvider.dart';
-import 'package:coupon_app/src/resources/userProvider.dart';
+import 'package:coupon_app/src/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 
 class SignUpPage extends StatelessWidget {
   LoginBloc bloc;
-  final userProvider = new UserProvider();
   @override
   Widget build(BuildContext context) {
     bloc = BlocProvider.of<LoginBloc>(context);
@@ -29,13 +28,9 @@ class SignUpPage extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(0.0),
       child: Stack(
-        //mainAxisAlignment: MainAxisAlignment.end,
-        //crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           _createBackground(context),
           _signUpForm(context),
-          //_buildUserInfo(context),
-          //_buildSignUpButton(context)
         ],
       ),
     );
@@ -43,7 +38,7 @@ class SignUpPage extends StatelessWidget {
 
   _buildSignUpButton(BuildContext context) {
     return StreamBuilder(
-        stream: bloc.googleAccount,
+        stream: bloc.userStream,
         builder: (BuildContext ctx, AsyncSnapshot<FirebaseUser> snapshot) {
           if (snapshot.hasData) {
             return Container();
@@ -52,7 +47,7 @@ class SignUpPage extends StatelessWidget {
               Buttons.Google,
               text: "Sign up with Google",
               onPressed: () {
-                bloc.googleSignIn();
+                bloc.loginWithGoogle();
               },
             );
           }
@@ -61,7 +56,7 @@ class SignUpPage extends StatelessWidget {
 
   _buildUserInfo(BuildContext context) {
     return StreamBuilder(
-      stream: bloc.googleAccount,
+      stream: bloc.userStream,
       builder: (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
         if (!snapshot.hasData) {
           return Container();
@@ -211,7 +206,7 @@ class SignUpPage extends StatelessWidget {
 
   Widget _createPasswordForm() {
     return StreamBuilder(
-        stream: bloc.passwordSteam,
+        stream: bloc.passwordStream,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           return Container(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -246,7 +241,12 @@ class SignUpPage extends StatelessWidget {
         });
   }
 
-  _register(BuildContext context) {
-    userProvider.newUser(bloc.email, bloc.password);
+  _register(BuildContext context) async {
+    // Map info = await bloc.newUser(bloc.email, bloc.password);
+    // if (info['ok']) {
+    //   Navigator.pushReplacementNamed(context, 'home');
+    // } else {
+    //   showAlert(context, 'Error', info['message']);
+    // }
   }
 }

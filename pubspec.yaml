@@ -36,6 +36,9 @@ dependencies:
   #rx dart
   rxdart: ^0.24.0
 
+  #shered preferences
+  shared_preferences:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
