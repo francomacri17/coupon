@@ -36,6 +36,9 @@ dependencies:
   #rx dart
   rxdart: ^0.24.0
 
+  #shimmer 
+  shimmer: ^1.1.1
+
   #shered preferences
   shared_preferences:
 
