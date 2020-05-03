@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:convert';
 import 'package:coupon_app/src/userPreferences/userPreferences.dart';
@@ -42,35 +43,15 @@ class FirebaseProvider {
   }
 
   Future<FirebaseUser> loginWithEmail(String email, String password) async {
-    final authData = {
-      'email': email,
-      'password': password,
-      'returnSecureToken': true
-    };
 
-    final response = await http.post(
-        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$_firebaseKey',
-        body: json.encode(authData));
+    var auth = await _auth.signInWithEmailAndPassword(
+        email: email, password: password);
 
-    Map<String, dynamic> decodeResponse = json.decode(response.body);
-
-    print(decodeResponse.toString());
-    if (decodeResponse.containsKey('idToken')) {
-      
-      saveToken(decodeResponse['idToken']);
-
-      final AuthCredential credential = GoogleAuthProvider.getCredential(
-        accessToken: decodeResponse['accessToken'],
-        idToken: decodeResponse['idToken'],
-      );
-
-      var auth = await _auth.signInWithCredential(credential);
-
-      return auth.user;
-    }
+    return auth.user;
   }
 
   Future<FirebaseUser> loginWithGoogle() async {
+    
     FirebaseUser firebaseUser = await getUserFromGoogle();
     var tokenId = await firebaseUser.getIdToken();
     if (tokenId.token != null) {
@@ -103,4 +84,28 @@ class FirebaseProvider {
       return {'ok': false, 'message': decodeResponse['error']['message']};
     }
   }
+
+
+
+  Future<FirebaseUser> login(LoginProviders loginProvider, String email, String password){
+    var firebaseUser;
+    switch (loginProvider) {
+      case LoginProviders.GOGGLE:
+        firebaseUser = loginWithGoogle();
+        break;
+      case LoginProviders.EMAIL:
+        firebaseUser = loginWithEmail(email, password);
+      break;
+      default:
+    }
+    
+    return firebaseUser;
+  }
+}
+
+enum LoginProviders{
+  GOGGLE,
+  TWITTER,
+  FACEBOOK,
+  EMAIL
 }

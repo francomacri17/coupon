@@ -1,54 +1,50 @@
-import 'package:coupon_app/src/blocs/login.bloc.dart';
-import 'package:coupon_app/src/resources/blocProvider.dart';
-import 'package:coupon_app/src/ui/home.page.dart';
-import 'package:coupon_app/src/ui/login.page.dart';
-import 'package:coupon_app/src/ui/signUp.page.dart';
-import 'package:coupon_app/src/ui/splash.page.dart';
-import 'package:coupon_app/src/userPreferences/userPreferences.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:coupon_app/src/AuthenticationBloc/authenticationBloc.dart';
 import 'package:flutter/material.dart';
+import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:coupon_app/src/resources/userRepository.dart';
+import 'package:coupon_app/src/ui/homePage.dart';
+import 'package:coupon_app/src/ui/login/loginPage.dart';
+import 'package:coupon_app/src/ui/splashPage.dart';
+import 'package:coupon_app/src/resources/simpleBlocDelegate.dart';
 
-void main() async {
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = new UserPreferences();
-  await prefs.initPrefs();
-
-  runApp(MyApp());
+  BlocSupervisor.delegate = SimpleBlocDelegate();
+  final UserRepository userRepository = UserRepository();
+  runApp(
+    BlocProvider(
+      create: (context) => AuthenticationBloc(
+        userRepository: userRepository,
+      )..add(AppStarted()),
+      child: App(userRepository: userRepository),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
+class App extends StatelessWidget {
+  final UserRepository _userRepository;
+
+  App({Key key, @required UserRepository userRepository})
+      : assert(userRepository != null),
+        _userRepository = userRepository,
+        super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Login',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+      home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
+        builder: (context, state) {
+          if (state is Unauthenticated) {
+            return LoginScreen(userRepository: _userRepository);
+          }
+          if (state is Authenticated) {
+            return HomeScreen(name: state.displayName);
+          }
+          return SplashPage();
+        },
       ),
-      initialRoute: this.getCurrentUser() != null ? 'home' : 'login',
-      routes: {
-        'splash': (BuildContext context) => BlocProvider<LoginBloc>(
-              bloc: LoginBloc(),
-              child: SplashPage(),
-            ),
-        'login': (BuildContext context) => BlocProvider<LoginBloc>(
-              bloc: LoginBloc(),
-              child: LoginPage(),
-            ),
-        'signUp': (BuildContext context) => BlocProvider<LoginBloc>(
-              bloc: LoginBloc(),
-              child: SignUpPage(),
-            ),
-        'home': ((BuildContext context) => BlocProvider<LoginBloc>(
-              bloc: LoginBloc(),
-              child: HomePage(),
-            ))
-      },
     );
-  }
-
-  Future getCurrentUser() async {
-    FirebaseUser _user = await FirebaseAuth.instance.currentUser();
-    print("User: ${_user.displayName ?? "None"}");
-    return _user;
   }
 }
