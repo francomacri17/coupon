@@ -1,4 +1,5 @@
 import 'package:coupon_app/src/AuthenticationBloc/authenticationBloc.dart';
+import 'package:coupon_app/src/ui/user/userPage.dart';
 import 'package:flutter/material.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,10 +38,11 @@ class App extends StatelessWidget {
       home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is Unauthenticated) {
-            return LoginScreen(userRepository: _userRepository);
+            return LoginPage(userRepository: _userRepository);
           }
           if (state is Authenticated) {
-            return HomeScreen(name: state.displayName);
+            //return HomePage(user: state.user);
+            return UserPage(user: state.user);
           }
           return SplashPage();
         },
